@@ -3,6 +3,7 @@
 FarmDirect Flutter project.
 
 # Screens and Navigation Flow
+The dart files for the screens are in the "lib" folder.
 
 ### 1. ConsumerHomeScreen
 Purpose:
