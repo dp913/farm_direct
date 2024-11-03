@@ -1,9 +1,11 @@
-# farm_direct
+# FarmDirect
+Farm Direct is an online platform designed to connect Canadian farmers directly with consumers, addressing the challenges of distribution, high operational costs, and limited market visibility. This application allows small and medium-sized farmers to create profiles, list their products, and engage with customers through a user-friendly interface.
 
-FarmDirect Flutter project.
+## Directory Structure
+The dart files for the screens are in the "lib" directory.
+The Docs directory contains documentation for the project including SRS and SDS documents.
 
 ## Screens and Navigation Flow
-The dart files for the screens are in the "lib" folder.
 
 ### 1. ConsumerHomeScreen
 Purpose:
