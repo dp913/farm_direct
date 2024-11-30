@@ -1,6 +1,7 @@
 // lib/farmer_list_screen.dart
-import 'package:farm_direct/product_detail_screen.dart';
 import 'package:flutter/material.dart';
+import 'product_detail_screen.dart';
+import 'consumer_home_screen.dart'; // Import for navigation to HomeScreen
 
 class FarmerListScreen extends StatefulWidget {
   final String product;
@@ -94,6 +95,29 @@ class _FarmerListScreenState extends State<FarmerListScreen> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Orders'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+        selectedItemColor: Colors.green,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        onTap: (index) {
+          // Handle navigation based on the tapped item
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          } else if (index == 1) {
+            // Navigate to Orders screen
+          } else if (index == 2) {
+            // Navigate to Profile screen
+          }
+        },
       ),
     );
   }

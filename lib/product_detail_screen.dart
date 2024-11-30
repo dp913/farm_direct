@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'consumer_home_screen.dart'; // Import for navigation to HomeScreen
 
 class ProductDetailScreen extends StatelessWidget {
   final Map<String, String> farmerDetails;
@@ -59,6 +60,29 @@ class ProductDetailScreen extends StatelessWidget {
             Text('Delivery Available: ${farmerDetails['delivery']}'),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Orders'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+        selectedItemColor: Colors.green,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        onTap: (index) {
+          // Handle navigation based on the tapped item
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          } else if (index == 1) {
+            // Navigate to Orders screen
+          } else if (index == 2) {
+            // Navigate to Profile screen
+          }
+        },
       ),
     );
   }
