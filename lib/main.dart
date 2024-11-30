@@ -2,6 +2,8 @@
 import 'package:farm_direct/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'consumer_home_screen.dart';
+import 'farmer_dashboard_screen.dart';
+import 'login_screen.dart';
 
 void main() {
   runApp(FarmDirectApp());
@@ -15,7 +17,7 @@ class FarmDirectApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Colors.green,
       ),
-      home: SignupScreen(),
+      home: LoginScreen(),
     );
   }
 }
