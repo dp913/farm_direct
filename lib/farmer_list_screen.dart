@@ -1,5 +1,6 @@
 // lib/farmer_list_screen.dart
 import 'package:flutter/material.dart';
+import 'consumer_profile_screen.dart';
 import 'product_detail_screen.dart';
 import 'consumer_home_screen.dart'; // Import for navigation to HomeScreen
 
@@ -99,10 +100,11 @@ class _FarmerListScreenState extends State<FarmerListScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Orders'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart), label: 'Orders'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
-        selectedItemColor: Colors.green,
+        selectedItemColor: Colors.grey,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
         onTap: (index) {
@@ -116,6 +118,10 @@ class _FarmerListScreenState extends State<FarmerListScreen> {
             // Navigate to Orders screen
           } else if (index == 2) {
             // Navigate to Profile screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ConsumerProfileScreen()),
+            );
           }
         },
       ),
@@ -203,13 +209,15 @@ class FarmerCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductDetailScreen(farmerDetails: farmerDetails),
+            builder: (context) =>
+                ProductDetailScreen(farmerDetails: farmerDetails),
           ),
         );
       },
       child: Card(
         child: ListTile(
-          leading: Image.asset(imageUrl, width: 50, height: 50, fit: BoxFit.cover),
+          leading:
+              Image.asset(imageUrl, width: 50, height: 50, fit: BoxFit.cover),
           title: Text(name),
           subtitle: Text(location),
           trailing: Text(rate),
