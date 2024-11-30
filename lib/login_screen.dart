@@ -1,6 +1,6 @@
 // lib/login_screen.dart
 import 'package:flutter/material.dart';
-import 'farmer_dashboard_screen.dart'; // Assuming this is the FarmerDashboardScreen you created earlier
+import 'farmer_dashboard_screen.dart'; // Assuming this is the FarmerDashboardScreen
 import 'consumer_home_screen.dart'; // Assuming this is the HomeScreen for consumers
 
 class LoginScreen extends StatefulWidget {
@@ -21,32 +21,90 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Phone Number:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            TextField(
-              controller: _phoneController,
-              decoration: InputDecoration(hintText: 'Enter your phone number'),
-            ),
-            SizedBox(height: 20),
-            Text('Password:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(hintText: 'Enter your password'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login,
-              child: Text('Login'),
-            ),
-          ],
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Login Heading
+              Text(
+                'Login',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Phone Number Field
+              TextField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: Icon(Icons.phone, color: Colors.green),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Password Field
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: Icon(Icons.lock, color: Colors.green),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Login Button
+              ElevatedButton(
+                onPressed: _login,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 80, vertical: 14), backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ), // Button color
+                ),
+                child: Text(
+                  'Login',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Create Account Button
+              TextButton(
+                onPressed: () {
+                  // Navigate to Create Account screen
+                },
+                child: Text(
+                  'Create Account',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.green,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Error Message Placeholder
+              Text(
+                '', // Use this to display error messages dynamically
+                style: TextStyle(color: Colors.red),
+              ),
+            ],
+          ),
         ),
       ),
     );
