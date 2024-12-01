@@ -1,7 +1,9 @@
 // lib/home_screen.dart
 import 'package:flutter/material.dart';
+import 'consumer_orders_screen.dart';
 import 'product_detail_screen.dart';
 import 'product_category_screen.dart';
+import 'consumer_profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final List<Map<String, String>> categories = [
@@ -62,13 +64,29 @@ class HomeScreen extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Orders'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
+        currentIndex: 0, // Set the current index to Home
+        onTap: (index) {
+          if (index == 0) {
+            // Stay on Home Screen
+          } else if (index == 1) {
+            // Navigate to Orders Screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ConsumerOrdersScreen()),
+            );
+          } else if (index == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ConsumerProfileScreen()),
+            );
+          }
+        },
       ),
     );
   }
@@ -83,35 +101,35 @@ class CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductCategoryScreen(category: title),
-          ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProductCategoryScreen(category: title),
+            ),
+          );
+        },
+        child: Container(
+            decoration: BoxDecoration(
+              color: Colors.green[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  image,
+                  height: 100,
+                  width: 170,
+                ),
+                SizedBox(height: 8),
+                Text(
+                  title,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            ),
         );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.green[100],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              image,
-              height: 100,
-              width: 170,
-            ),
-            SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    }
 }

@@ -1,8 +1,14 @@
 // lib/manage_produce_screen.dart
 import 'package:flutter/material.dart';
+import 'add_produce.dart';
 
-class ManageProduceScreen extends StatelessWidget {
-  final List<Map<String, String>> produceList = [
+class ManageProduceScreen extends StatefulWidget {
+  @override
+  _ManageProduceScreenState createState() => _ManageProduceScreenState();
+}
+
+class _ManageProduceScreenState extends State<ManageProduceScreen> {
+  final List<Map<String, String>> _produceList = [
     {
       'name': 'Tomato',
       'quantity': '100 kg',
@@ -15,8 +21,73 @@ class ManageProduceScreen extends StatelessWidget {
       'price': '\$1.8/kg',
       'image': 'assets/carrot.png',
     },
-    // Add more items as needed
   ];
+
+  // Function to handle editing a product
+  void _editProduce(int index) async {
+    final produce = _produceList[index];
+
+    // Show a dialog to edit product details
+    final updatedProduce = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (BuildContext context) {
+        final TextEditingController nameController =
+        TextEditingController(text: produce['name']);
+        final TextEditingController quantityController =
+        TextEditingController(text: produce['quantity']);
+        final TextEditingController priceController =
+        TextEditingController(text: produce['price']);
+
+        return AlertDialog(
+          title: Text('Edit Product'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Product Name'),
+              ),
+              TextField(
+                controller: quantityController,
+                decoration: InputDecoration(labelText: 'Quantity (e.g., 50 kg)'),
+                keyboardType: TextInputType.text,
+              ),
+              TextField(
+                controller: priceController,
+                decoration: InputDecoration(labelText: 'Price (e.g., \$2.5/kg)'),
+                keyboardType: TextInputType.text,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Dismiss without changes
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, {
+                  'name': nameController.text,
+                  'quantity': quantityController.text,
+                  'price': priceController.text,
+                  'image': produce['image'] ?? '',
+                });
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (updatedProduce != null) {
+      setState(() {
+        _produceList[index] = updatedProduce; // Update the product details
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,31 +96,43 @@ class ManageProduceScreen extends StatelessWidget {
         title: Text('Manage Produce'),
       ),
       body: ListView.builder(
-        itemCount: produceList.length,
+        itemCount: _produceList.length,
         itemBuilder: (context, index) {
-          final produce = produceList[index];
+          final produce = _produceList[index];
           return Card(
             margin: EdgeInsets.all(8.0),
             child: ListTile(
-              leading: Image.asset(produce['image'] ?? '', width: 50, height: 50, fit: BoxFit.cover),
+              leading: Image.asset(
+                produce['image'] ?? '',
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+              ),
               title: Text(produce['name'] ?? ''),
               subtitle: Text('${produce['quantity']} - ${produce['price']}'),
               trailing: IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () {
-                  // Logic to edit produce
+                  _editProduce(index); // Call the edit function
                 },
               ),
-              onTap: () {
-                // Logic to view produce details
-              },
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Logic to add new produce
+        onPressed: () async {
+          // Navigate to AddDetailsScreen and wait for result
+          final newProduce = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddDetailsScreen()),
+          );
+
+          if (newProduce != null) {
+            setState(() {
+              _produceList.add(newProduce); // Add new product
+            });
+          }
         },
         child: Icon(Icons.add),
         tooltip: 'Add Produce',

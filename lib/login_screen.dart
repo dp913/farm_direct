@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'consumer_home_screen.dart';
 import 'farmer_dashboard_screen.dart';
 import 'otp_verification_screen.dart'; // Import the OTP screen
+import 'farmer_dashboard_screen.dart'; // Assuming this is the FarmerDashboardScreen
+import 'consumer_home_screen.dart'; // Assuming this is the HomeScreen for consumers
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -89,10 +91,14 @@ class _LoginScreenState extends State<LoginScreen> {
               // Create Account Button
               TextButton(
                 onPressed: () {
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => SignUpScreen()),
                   );
+
+                  // Navigate to Create Account screen
+
                 },
                 child: Text(
                   'Create Account',

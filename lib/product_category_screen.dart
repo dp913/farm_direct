@@ -1,6 +1,9 @@
 // lib/product_page.dart
 import 'package:flutter/material.dart';
+import 'consumer_orders_screen.dart';
+import 'consumer_profile_screen.dart';
 import 'farmer_list_screen.dart';
+import 'consumer_home_screen.dart'; // Import for navigation to HomeScreen
 
 class ProductCategoryScreen extends StatelessWidget {
   final String category;
@@ -55,6 +58,37 @@ class ProductCategoryScreen extends StatelessWidget {
           ],
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Orders'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+        selectedItemColor: Colors.grey,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        onTap: (index) {
+          // Handle navigation based on the tapped item
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          } else if (index == 1) {
+            // Navigate to Orders screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ConsumerOrdersScreen()),
+            );
+          } else if (index == 2) {
+            // Navigate to Profile screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ConsumerProfileScreen()),
+            );
+          }
+        },
+      ),
     );
   }
 
@@ -85,35 +119,35 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FarmerListScreen(product: product['name'] ?? ''),
-          ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FarmerListScreen(product: product['name'] ?? ''),
+            ),
+          );
+        },
+        child: Container(
+            decoration: BoxDecoration(
+              color: Colors.green[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  product['image'] ?? '',
+                  height: 150,
+                  width: 150,
+                ),
+                SizedBox(height: 8),
+                Text(
+                  product['name'] ?? '',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            ),
         );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.green[100],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              product['image'] ?? '',
-              height: 150,
-              width: 150,
-            ),
-            SizedBox(height: 8),
-            Text(
-              product['name'] ?? '',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    }
 }
