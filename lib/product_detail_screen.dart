@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'consumer_home_screen.dart';
 import 'consumer_orders_screen.dart';
+import 'consumer_place_order_screen.dart';
 import 'consumer_profile_screen.dart'; // Import for navigation to ProfileScreen
 
 class ProductDetailScreen extends StatelessWidget {
@@ -66,8 +67,12 @@ class ProductDetailScreen extends StatelessWidget {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // Show confirmation dialog
-                  _showOrderConfirmation(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PlaceOrderScreen(farmerDetails: farmerDetails),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green, // Button color
