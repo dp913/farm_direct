@@ -1,5 +1,7 @@
 // lib/consumer_profile_screen.dart
 import 'package:flutter/material.dart';
+import 'consumer_home_screen.dart';
+import 'consumer_orders_screen.dart';
 import 'login_screen.dart'; // Import HomeScreen for navigation
 import 'edit_profile_screen.dart'; // Import the EditProfileScreen
 
@@ -91,6 +93,7 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
               label: Text('Edit Profile'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -107,6 +110,7 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
               label: Text('Log Out'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[300],
+                foregroundColor: Colors.white,
               ),
             ),
           ],
@@ -126,8 +130,19 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
           // Handle navigation based on the tapped item
           if (index == 0) {
             // Navigate to Home screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
           } else if (index == 1) {
             // Navigate to Orders screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ConsumerOrdersScreen()),
+            );
+          } else if (index == 2) {
+            //
+
           }
         },
       ),

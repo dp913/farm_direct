@@ -166,6 +166,7 @@ class _AddDetailsScreenState extends State<AddDetailsScreen> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
                       padding:
                       EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       textStyle: TextStyle(fontSize: 18),
