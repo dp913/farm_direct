@@ -1,7 +1,6 @@
 // lib/profile_management_screen.dart
 
 import 'package:flutter/material.dart';
-//import 'contact_us_screen.dart'; // Import the Contact Us screen
 import 'login_screen.dart'; // Import for logout navigation
 import 'edit_profile_screen.dart'; // Import the edit profile screen
 import 'farmer_dashboard_screen.dart';
@@ -61,19 +60,17 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile Management'),
-        // backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align everything to the left
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Picture
             Center(
               child: CircleAvatar(
                 radius: 60,
                 backgroundImage: AssetImage('assets/farmer_placeholder.png'),
-                // Replace with the farmer's image
               ),
             ),
             const SizedBox(height: 16),
@@ -110,9 +107,9 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
             // Action Buttons
             const Divider(),
             Align(
-              alignment: Alignment.centerLeft, // Align Edit Profile button to the left
+              alignment: Alignment.centerLeft,
               child: ElevatedButton.icon(
-                onPressed: _editProfile, // Edit profile functionality
+                onPressed: _editProfile,
                 icon: Icon(Icons.edit),
                 label: Text('Edit Profile'),
                 style: ElevatedButton.styleFrom(
@@ -123,10 +120,9 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
             ),
             const SizedBox(height: 8),
             Align(
-              alignment: Alignment.centerLeft, // Align Log Out button to the left
+              alignment: Alignment.centerLeft,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // Logic for logging out
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -142,17 +138,45 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
             // Contact Us Button
             Align(
-              alignment: Alignment.centerLeft, // Align the Contact Us button to the left
+              alignment: Alignment.centerLeft,
               child: ElevatedButton(
                 onPressed: () {
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => ContactUsScreen(),
-                  //   ),
-                  // );
+                  // Show an AlertDialog with contact details
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Contact Us'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: Icon(Icons.phone, color: Colors.green),
+                              title: Text('Phone'),
+                              subtitle: Text('+1 437 955 5902'),
+                            ),
+                            ListTile(
+                              leading: Icon(Icons.email, color: Colors.blue),
+                              title: Text('Email'),
+                              subtitle:
+                              Text('farmdirectcustomercare@gmail.com'),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // Close the dialog
+                            },
+                            child: Text('Close'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
                 child: Text('Contact Us'),
                 style: ElevatedButton.styleFrom(
