@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'otp_verification_screen.dart';
+
 class SignUpScreen extends StatefulWidget {
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
@@ -276,15 +278,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _signUp() {
     if (_formKey.currentState!.validate()) {
-      // Simulate storing the user details and navigate back to login
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Account created successfully as $_userType!'), // Include the user type
-          backgroundColor: Colors.green,
+
+//       // Simulate storing the user details and navigate back to login
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(
+//           content: Text(
+//               'Account created successfully as $_userType!'), // Include the user type
+//           backgroundColor: Colors.green,
+//         ),
+//       );
+//       Navigator.pop(context);
+//     }
+//   }
+// }
+
+      final phone = _phoneController.text;
+      String formattedPhone = "+1$phone";
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OtpVerificationScreen(phoneNumber: formattedPhone),
         ),
       );
-      Navigator.pop(context);
+      // // Simulate storing the user details and navigate back to login
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Text(
+      //         'Account created successfully as $_userType!'), // Include the user type
+      //     backgroundColor: Colors.green,
+      //   ),
+      // );
+      // Navigator.pop(context);
     }
   }
 }
+

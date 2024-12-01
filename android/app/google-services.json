@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "447619662142",
+    "project_id": "farmdirect-6246f",
+    "storage_bucket": "farmdirect-6246f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447619662142:android:e9a9059ec7bad1276cec6f",
+        "android_client_info": {
+          "package_name": "com.farmdirect.farm_direct"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "447619662142-itekgaga67h6humt3g24i6lb6lbalaur.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.farmdirect.farm_direct",
+            "certificate_hash": "c257c2059c6032768fdedb6e6b2bc71700e43681"
+          }
+        },
+        {
+          "client_id": "447619662142-ls5omga64uml767v893tv88aqlnv7t4l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFABKEpG_7_VnKfgOWLJsgO7XfDxSOIO0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "447619662142-ls5omga64uml767v893tv88aqlnv7t4l.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "447619662142-m40bpqne8gi41abf4p2c0nlo1r8df3gi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.farmdirect.farmDirect"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

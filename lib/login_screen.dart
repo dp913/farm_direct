@@ -1,5 +1,10 @@
+// lib/login_screen.dart
+
 import 'package:farm_direct/signup_screen.dart';
 import 'package:flutter/material.dart';
+import 'consumer_home_screen.dart';
+import 'farmer_dashboard_screen.dart';
+import 'otp_verification_screen.dart'; // Import the OTP screen
 import 'farmer_dashboard_screen.dart'; // Assuming this is the FarmerDashboardScreen
 import 'consumer_home_screen.dart'; // Assuming this is the HomeScreen for consumers
 
@@ -12,14 +17,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+
   // Variable to toggle password visibility
   bool _passwordVisible = false;
 
-  // Sample login credentials for farmer and consumer
-  final String farmerPhone = "1234567890";
+  // Sample login credentials for farmer, consumer, and the new user
+  final String farmerPhone = "+11234567890";  // Adjusted with +1
+
   final String farmerPassword = "farmer";
-  final String consumerPhone = "9876543210";
+  final String consumerPhone = "+19876543210";  // Adjusted with +1
   final String consumerPassword = "consumer";
+  final String newUserPhone = "+14377667036";  // New user phone number with +1
+  final String newUserPassword = "kush";    // New user password
 
   @override
   Widget build(BuildContext context) {
@@ -100,10 +109,14 @@ class _LoginScreenState extends State<LoginScreen> {
               // Create Account Button
               TextButton(
                 onPressed: () {
+                  
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => SignUpScreen()),
                   );
+
+                  // Navigate to Create Account screen
+
                 },
                 child: Text(
                   'Create Account',
@@ -151,6 +164,70 @@ class _LoginScreenState extends State<LoginScreen> {
       _showErrorDialog();
     }
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       title: Text('Login'),
+  //     ),
+  //     body: Padding(
+  //       padding: const EdgeInsets.all(16.0),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Text('Phone Number:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+  //           TextField(
+  //             controller: _phoneController,
+  //             decoration: InputDecoration(hintText: 'Enter your phone number'),
+  //           ),
+  //           SizedBox(height: 20),
+  //           Text('Password:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+  //           TextField(
+  //             controller: _passwordController,
+  //             obscureText: true,
+  //             decoration: InputDecoration(hintText: 'Enter your password'),
+  //           ),
+  //           SizedBox(height: 20),
+  //           ElevatedButton(
+  //             onPressed: _navigateToOtpVerification,
+  //             child: Text('Next'),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // void _navigateToOtpVerification() {
+  //   final phone = _phoneController.text;
+  //   final password = _passwordController.text;
+  //
+  //   // Ensure +1 is added to the number if it's the special case for new user
+  //   String formattedPhone = phone;
+  //
+  //   if (phone == "4377667036") {
+  //     formattedPhone = "+1$phone";  // Prefix with +1 for the new user phone number
+  //   }
+  //
+  //   if (phone.isNotEmpty && password.isNotEmpty) {
+  //     // Check if the phone number and password match any of the registered users
+  //     if ((formattedPhone == farmerPhone && password == farmerPassword) ||
+  //         (formattedPhone == consumerPhone && password == consumerPassword) ||
+  //         (formattedPhone == newUserPhone && password == newUserPassword)) {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => OtpVerificationScreen(phoneNumber: formattedPhone),
+  //         ),
+  //       );
+  //     } else {
+  //       _showErrorDialog('Invalid phone number or password. Please try again.');
+  //     }
+  //   } else {
+  //     _showErrorDialog('Please enter both phone number and password.');
+  //   }
+  // }
 
   void _showErrorDialog() {
     showDialog(
