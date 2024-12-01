@@ -1,5 +1,8 @@
 // lib/manage_produce_screen.dart
 import 'package:flutter/material.dart';
+import 'farmer_dashboard_screen.dart';
+import 'order_management_screen.dart';
+import 'profile_management_screen.dart';
 import 'add_produce.dart';
 
 class ManageProduceScreen extends StatefulWidget {
@@ -23,7 +26,24 @@ class _ManageProduceScreenState extends State<ManageProduceScreen> {
     },
   ];
 
-  // Function to handle editing a product
+  int _selectedIndex = 1; // Set the current tab index to Manage Produce
+
+  final List<Widget> _screens = [
+    FarmerDashboardScreen(),
+    ManageProduceScreen(), // Self-reference for navigation consistency
+    OrderManagementScreen(),
+    ProfileManagementScreen(),
+  ];
+
+  void _onItemTapped(int index) {
+    if (_selectedIndex != index) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => _screens[index]),
+      );
+    }
+  }
+
   void _editProduce(int index) async {
     final produce = _produceList[index];
 
@@ -94,6 +114,7 @@ class _ManageProduceScreenState extends State<ManageProduceScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Manage Produce'),
+        //backgroundColor: Colors.green,
       ),
       body: ListView.builder(
         itemCount: _produceList.length,
@@ -136,6 +157,33 @@ class _ManageProduceScreenState extends State<ManageProduceScreen> {
         },
         child: Icon(Icons.add),
         tooltip: 'Add Produce',
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list_alt),
+            label: 'Manage Produce',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_grocery_store),
+            label: 'Orders',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.green,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        onTap: _onItemTapped,
       ),
     );
   }

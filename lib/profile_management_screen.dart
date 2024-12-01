@@ -1,7 +1,12 @@
 // lib/profile_management_screen.dart
+
 import 'package:flutter/material.dart';
+//import 'contact_us_screen.dart'; // Import the Contact Us screen
 import 'login_screen.dart'; // Import for logout navigation
 import 'edit_profile_screen.dart'; // Import the edit profile screen
+import 'farmer_dashboard_screen.dart';
+import 'manage_produce_screen.dart';
+import 'order_management_screen.dart';
 
 class ProfileManagementScreen extends StatefulWidget {
   @override
@@ -16,6 +21,24 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
     'contact': '+1 234 567 890',
     'email': 'john.doe@example.com',
   };
+
+  int _selectedIndex = 3; // Set the current tab index to Profile Management
+
+  final List<Widget> _screens = [
+    FarmerDashboardScreen(),
+    ManageProduceScreen(),
+    OrderManagementScreen(),
+    ProfileManagementScreen(), // Self-reference for navigation consistency
+  ];
+
+  void _onItemTapped(int index) {
+    if (_selectedIndex != index) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => _screens[index]),
+      );
+    }
+  }
 
   void _editProfile() async {
     // Navigate to EditProfileScreen and wait for updated data
@@ -38,6 +61,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile Management'),
+        // backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -93,6 +117,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
                 label: Text('Edit Profile'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ),
@@ -112,11 +137,57 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
                 label: Text('Log Out'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red[300],
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Contact Us Button
+            Align(
+              alignment: Alignment.centerLeft, // Align the Contact Us button to the left
+              child: ElevatedButton(
+                onPressed: () {
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => ContactUsScreen(),
+                  //   ),
+                  // );
+                },
+                child: Text('Contact Us'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list_alt),
+            label: 'Manage Produce',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_grocery_store),
+            label: 'Orders',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.green,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        onTap: _onItemTapped,
       ),
     );
   }

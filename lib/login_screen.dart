@@ -1,4 +1,5 @@
 // lib/login_screen.dart
+
 import 'package:farm_direct/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'consumer_home_screen.dart';
@@ -16,8 +17,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+
+  // Variable to toggle password visibility
+  bool _passwordVisible = false;
+
   // Sample login credentials for farmer, consumer, and the new user
   final String farmerPhone = "+11234567890";  // Adjusted with +1
+
   final String farmerPassword = "farmer";
   final String consumerPhone = "+19876543210";  // Adjusted with +1
   final String consumerPassword = "consumer";
@@ -58,16 +64,27 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Password Field
+              // Password Field with Eye Icon
               TextField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: !_passwordVisible, // Toggle visibility
                 decoration: InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   prefixIcon: Icon(Icons.lock, color: Colors.green),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.green,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _passwordVisible = !_passwordVisible; // Toggle state
+                      });
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -76,7 +93,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ElevatedButton(
                 onPressed: _login,
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 80, vertical: 14), backgroundColor: Colors.green,
+                  padding: EdgeInsets.symmetric(horizontal: 80, vertical: 14),
+                  backgroundColor: Colors.green,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ), // Button color
@@ -91,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Create Account Button
               TextButton(
                 onPressed: () {
-
+                  
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => SignUpScreen()),
@@ -109,6 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
 
               // Error Message Placeholder

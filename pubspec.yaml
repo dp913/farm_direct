@@ -37,6 +37,8 @@ location_dependencies:
     sdk: flutter
   flutter_typeahead: ^4.0.0
 
+  # Add this line
+
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -49,6 +51,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+
+contact_us_dependencies:
+  flutter:
+    sdk: flutter
+  url_launcher: ^6.3.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

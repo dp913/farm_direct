@@ -12,33 +12,35 @@ class FarmerDashboardScreen extends StatefulWidget {
 class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
   int _selectedIndex = 0;
 
-  // List of widgets to be shown when each tab is selected
   final List<Widget> _screens = [
-    Center(child: Text('Dashboard Overview')), // Placeholder for Dashboard overview
+    FarmerDashboardScreen(), // Self-reference for navigation consistency
     ManageProduceScreen(),
     OrderManagementScreen(),
     ProfileManagementScreen(),
   ];
 
-  // Titles for the AppBar based on the selected index
-  final List<String?> _titles = [
-    'Farmer Dashboard', // Title for Dashboard screen
-    'Manage Produce', // No title for Manage Produce
-    null, // No title for Order Management
-    null, // No title for Profile Management
+  final List<String> _titles = [
+    'Farmer Dashboard',
+    'Manage Produce',
+    'Orders',
+    'Profile',
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (_selectedIndex != index) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => _screens[index]),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_titles[_selectedIndex] ?? ''), // Set title based on selected tab
+        title: Text(_titles[_selectedIndex]),
+        //backgroundColor: Colors.green,
       ),
       body: _selectedIndex == 0
           ? Column(
@@ -117,7 +119,8 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.green,
-        unselectedItemColor: Colors.grey, // Improve contrast for unselected items
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true, // Display labels for unselected items
         onTap: _onItemTapped,
       ),
     );
