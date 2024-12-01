@@ -1,4 +1,3 @@
-// lib/consumer_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'consumer_home_screen.dart';
 import 'consumer_orders_screen.dart';
@@ -18,6 +17,10 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
     'contact': '+1 234 567 890',
     'email': 'johndoe@example.com',
   };
+
+  // Phone and email data
+  final String phoneNumber = '+1 437 955 5902';
+  final String email = 'farmdirectcustomercare@gmail.com';
 
   // Navigate to EditProfileScreen
   void _editProfile() async {
@@ -113,6 +116,20 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                 foregroundColor: Colors.white,
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Contact Us Button
+            ElevatedButton(
+              onPressed: () {
+                // Display contact details when button is clicked
+                _showContactDetailsDialog();
+              },
+              child: Text('Contact Us'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+            ),
           ],
         ),
       ),
@@ -141,14 +158,99 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
               MaterialPageRoute(builder: (context) => ConsumerOrdersScreen()),
             );
           } else if (index == 2) {
-            //
-
+            // Already in Profile screen
           }
         },
       ),
     );
   }
 
+  // Method to display contact details dialog
+  // void _showContactDetailsDialog() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: Text('Contact Us'),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Text('Phone: $phoneNumber'),
+  //             SizedBox(height: 8),
+  //             Text('Email: $email'),
+  //           ],
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.pop(context); // Close the dialog
+  //             },
+  //             child: Text('Close'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+  // Method to display contact details dialog
+  void _showContactDetailsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Contact Us',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min, // Ensures dialog isn't unnecessarily large
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.phone, color: Colors.green),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Phone: $phoneNumber',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16), // Add space between items
+                Row(
+                  children: [
+                    Icon(Icons.email, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Email: $email',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  // Method to build the profile details row
   Widget _buildDetailRow(IconData icon, String title, String value) {
     return Row(
       children: [

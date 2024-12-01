@@ -261,6 +261,10 @@ class OrderCard extends StatelessWidget {
                   Navigator.pop(context);
                   _updateOrderStatus(order, 'In Progress');
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white, // Text color
+                  backgroundColor: Colors.green, // Button color
+                ),
                 child: Text('Approve'),
               ),
               TextButton(
@@ -268,6 +272,10 @@ class OrderCard extends StatelessWidget {
                   Navigator.pop(context);
                   _updateOrderStatus(order, 'Rejected');
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white, // Text color
+                  backgroundColor: Colors.red, // Button color
+                ),
                 child: Text('Reject'),
               ),
             ],
@@ -288,12 +296,20 @@ class OrderCard extends StatelessWidget {
                   Navigator.pop(context);
                   _updateOrderStatus(order, 'Completed');
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white, // Text color
+                  backgroundColor: Colors.green, // Button color
+                ),
                 child: Text('Yes'),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white, // Text color
+                  backgroundColor: Colors.red, // Button color
+                ),
                 child: Text('No'),
               ),
             ],
