@@ -1,5 +1,6 @@
-// lib/edit_profile_screen.dart
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final Map<String, String> profile;
@@ -37,14 +38,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  void _saveProfile() {
-    // Return the updated profile data when saving
-    Navigator.pop(context, {
-      'name': nameController.text,
-      'address': addressController.text,
-      'contact': contactController.text,
-      'email': emailController.text,
-    });
+  // Function to save the updated profile in Firestore
+  Future<void> _saveProfile() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        // Update the Firestore document for the user
+        await FirebaseFirestore.instance.collection('users').doc(user.email).update({
+          'name': nameController.text,
+          'address': addressController.text,
+          'contact': contactController.text,
+          'email': emailController.text,
+        });
+
+        // After updating the database, return the updated profile
+        Navigator.pop(context, {
+          'name': nameController.text,
+          'address': addressController.text,
+          'contact': contactController.text,
+          'email': emailController.text,
+        });
+      } catch (e) {
+        // Handle any errors that might occur during Firestore update
+        print('Error updating profile: $e');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed to update profile. Please try again later.'),
+        ));
+      }
+    }
   }
 
   @override

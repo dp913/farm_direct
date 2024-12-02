@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'login_screen.dart';
 import 'otp_verification_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -15,6 +18,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
+  bool _isLoading = false; // Declaring _isLoading variable
+
+
   final _formKey = GlobalKey<FormState>();
 
   String _userType = 'Farmer'; // Default value for radio button selection
@@ -22,12 +28,87 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isConfirmPasswordVisible = false; // Password visibility toggle for confirm password
   String _passwordMatchMessage = ''; // Message for password match
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  void _registerUser() async {
+    String name = _nameController.text.trim();
+    String email = _emailController.text.trim();
+    String phone = _phoneController.text.trim();
+    String address = _addressController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || phone.isEmpty || address.isEmpty) {
+      _showErrorDialog('All fields are required.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
+
+    try {
+      // Firebase Auth phone number verification
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OtpVerificationScreen(
+            phoneNumber: phone,
+            onVerificationSuccess: () async {
+              await _auth.createUserWithEmailAndPassword(
+                email: _emailController.text.trim(),
+                password: _passwordController.text.trim(),
+              );
+              // Save user details to Firestore
+              await FirebaseFirestore.instance.collection('users').doc(email).set({
+                'name': name,
+                'email': email,
+                'contact': phone,
+                'address': address,
+                'userType': _userType,
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('User registered successfully.'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              ); // Return to login screen
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      _showErrorDialog('Registration failed. Please try again.');
+    } finally {
+      setState(() {
+        _isLoading = false; // Hide loading indicator
+      });
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Create Account'),
-        backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -36,7 +117,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Heading
               Text(
                 'Sign Up',
                 style: TextStyle(
@@ -100,14 +180,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   prefixIcon: Icon(Icons.phone, color: Colors.green),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your phone number';
-                  } else if (value.length != 10) {
-                    return 'Phone number must be 10 digits';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
 
@@ -121,16 +193,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   prefixIcon: Icon(Icons.home, color: Colors.green),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your address';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
 
-              // User Type: Farmer or Consumer
+              // User Type
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -172,7 +238,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               // Password Field
               TextFormField(
                 controller: _passwordController,
-                obscureText: !_isPasswordVisible, // Toggle password visibility
+                obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(
@@ -186,7 +252,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     onPressed: () {
                       setState(() {
-                        _isPasswordVisible = !_isPasswordVisible; // Toggle visibility
+                        _isPasswordVisible = !_isPasswordVisible;
                       });
                     },
                   ),
@@ -205,7 +271,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               // Confirm Password Field
               TextFormField(
                 controller: _confirmPasswordController,
-                obscureText: !_isConfirmPasswordVisible, // Toggle confirm password visibility
+                obscureText: !_isConfirmPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
                   border: OutlineInputBorder(
@@ -219,7 +285,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     onPressed: () {
                       setState(() {
-                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible; // Toggle visibility
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                       });
                     },
                   ),
@@ -244,7 +310,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 8),
 
-              // Password Match Message
               Text(
                 _passwordMatchMessage,
                 style: TextStyle(
@@ -254,9 +319,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Sign Up Button
               ElevatedButton(
-                onPressed: _signUp,
+                onPressed: _registerUser,
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 14),
                   backgroundColor: Colors.green,
@@ -276,40 +340,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _signUp() {
-    if (_formKey.currentState!.validate()) {
-
-//       // Simulate storing the user details and navigate back to login
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(
-//           content: Text(
-//               'Account created successfully as $_userType!'), // Include the user type
-//           backgroundColor: Colors.green,
-//         ),
+// Future<void> _signUp() async {
+//   if (_formKey.currentState!.validate()) {
+//     try {
+//       await _auth.createUserWithEmailAndPassword(
+//         email: _emailController.text.trim(),
+//         password: _passwordController.text.trim(),
 //       );
-//       Navigator.pop(context);
+//
+//
+//
+//       // Navigate to OTP Verification Screen
+//       final phone = _phoneController.text;
+//       String formattedPhone = "+1$phone";
+//       Navigator.pushReplacement(
+//         context,
+//         MaterialPageRoute(builder: (context) => OtpVerificationScreen(phoneNumber: formattedPhone,)),
+//       );
+//     } catch (e) {
+//       showDialog(
+//         context: context,
+//         builder: (context) {
+//           return AlertDialog(
+//             title: Text('Sign Up Error'),
+//             content: Text(e.toString()),
+//             actions: [
+//               TextButton(
+//                 onPressed: () {
+//                   Navigator.of(context).pop();
+//                 },
+//                 child: Text('OK'),
+//               ),
+//             ],
+//           );
+//         },
+//       );
 //     }
 //   }
 // }
-
-      final phone = _phoneController.text;
-      String formattedPhone = "+1$phone";
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OtpVerificationScreen(phoneNumber: formattedPhone),
-        ),
-      );
-      // // Simulate storing the user details and navigate back to login
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(
-      //     content: Text(
-      //         'Account created successfully as $_userType!'), // Include the user type
-      //     backgroundColor: Colors.green,
-      //   ),
-      // );
-      // Navigator.pop(context);
-    }
-  }
 }
-

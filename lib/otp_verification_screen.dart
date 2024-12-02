@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'farmer_dashboard_screen.dart';
-import 'consumer_home_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
+  final VoidCallback onVerificationSuccess; // Callback for successful verification
 
-  OtpVerificationScreen({required this.phoneNumber});
+  OtpVerificationScreen({
+    required this.phoneNumber,
+    required this.onVerificationSuccess, // Passing the callback
+  });
 
   @override
   _OtpVerificationScreenState createState() => _OtpVerificationScreenState();
@@ -20,7 +22,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   void initState() {
     super.initState();
-    print("OtpVerificationScreen initialized with phone number: ${widget.phoneNumber}");
     _sendVerificationCode();
   }
 
@@ -28,20 +29,17 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     setState(() {
       _isLoading = true;
     });
-    print("Sending verification code to ${widget.phoneNumber}");
+
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: widget.phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) async {
-        print("Verification completed automatically, signing in...");
-        // Automatically signs in the user
         await FirebaseAuth.instance.signInWithCredential(credential);
-        _navigateToDashboard();
+        widget.onVerificationSuccess(); // Call the callback after verification
       },
       verificationFailed: (FirebaseAuthException e) {
         setState(() {
           _isLoading = false;
         });
-        print("Verification failed: ${e.message}");
         _showErrorDialog(e.message ?? "Verification failed. Please try again.");
       },
       codeSent: (String verificationId, int? resendToken) {
@@ -49,26 +47,19 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           _isLoading = false;
           _verificationId = verificationId;
         });
-        print("Code sent: verificationId = $verificationId");
-
-        // Show a SnackBar to notify that the OTP has been sent
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('OTP has been sent to your phone.')),
         );
       },
       codeAutoRetrievalTimeout: (String verificationId) {
         _verificationId = verificationId;
-        print("Auto retrieval timeout: verificationId = $verificationId");
       },
     );
   }
 
   void _verifyOtp() async {
     final otp = _otpController.text.trim();
-    print("Verifying OTP: $otp");
-
     if (_verificationId == null) {
-      print("Verification ID is missing.");
       _showErrorDialog('Verification ID is missing. Please try again.');
       return;
     }
@@ -78,25 +69,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         verificationId: _verificationId!,
         smsCode: otp,
       );
-      print("Signing in with OTP...");
       await FirebaseAuth.instance.signInWithCredential(credential);
-      _navigateToDashboard();
+      widget.onVerificationSuccess(); // Call the callback after OTP verification
     } catch (e) {
-      print("OTP verification failed: $e");
       _showErrorDialog('Invalid OTP. Please try again.');
     }
   }
 
-  void _navigateToDashboard() {
-    print("Navigating to dashboard...");
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => FarmerDashboardScreen()),
-    );
-  }
-
   void _showErrorDialog(String message) {
-    print("Error: $message");
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -127,14 +107,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Phone Number: ${widget.phoneNumber}', style: TextStyle(fontSize: 16)),
+            Text('Phone Number: ${widget.phoneNumber}'),
             SizedBox(height: 20),
-            Text('Enter OTP:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             TextField(
               controller: _otpController,
-              decoration: InputDecoration(hintText: 'Enter the OTP'),
+              decoration: InputDecoration(hintText: 'Enter OTP'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
