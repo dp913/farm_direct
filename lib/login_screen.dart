@@ -1,12 +1,10 @@
-// lib/login_screen.dart
-
-import 'package:farm_direct/signup_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'signup_screen.dart';
 import 'consumer_home_screen.dart';
 import 'farmer_dashboard_screen.dart';
-import 'otp_verification_screen.dart'; // Import the OTP screen
-import 'farmer_dashboard_screen.dart'; // Assuming this is the FarmerDashboardScreen
-import 'consumer_home_screen.dart'; // Assuming this is the HomeScreen for consumers
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -14,21 +12,15 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
 
   // Variable to toggle password visibility
   bool _passwordVisible = false;
 
-  // Sample login credentials for farmer, consumer, and the new user
-  final String farmerPhone = "+11234567890";  // Adjusted with +1
+  bool _isLoading = false; // Declaring _isLoading variable
 
-  final String farmerPassword = "farmer";
-  final String consumerPhone = "+19876543210";  // Adjusted with +1
-  final String consumerPassword = "consumer";
-  final String newUserPhone = "+14377667036";  // New user phone number with +1
-  final String newUserPassword = "kush";    // New user password
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -50,16 +42,16 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Phone Number Field
+              // Email Field
               TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Phone Number',
+                  labelText: 'Email',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  prefixIcon: Icon(Icons.phone, color: Colors.green),
+                  prefixIcon: Icon(Icons.email, color: Colors.green),
                 ),
               ),
               const SizedBox(height: 16),
@@ -97,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   backgroundColor: Colors.green,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
-                  ), // Button color
+                  ),
                 ),
                 child: Text(
                   'Login',
@@ -109,14 +101,10 @@ class _LoginScreenState extends State<LoginScreen> {
               // Create Account Button
               TextButton(
                 onPressed: () {
-                  
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => SignUpScreen()),
                   );
-
-                  // Navigate to Create Account screen
-
                 },
                 child: Text(
                   'Create Account',
@@ -142,100 +130,72 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _login() {
-    final phone = _phoneController.text;
-    final password = _passwordController.text;
+  // Function to perform login
+  Future<void> _login() async {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
 
-    // Check if the phone and password match for farmer or consumer
-    if (phone == farmerPhone && password == farmerPassword) {
-      // Navigate to the Farmer Dashboard screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => FarmerDashboardScreen()),
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Email and password are required.')),
       );
-    } else if (phone == consumerPhone && password == consumerPassword) {
-      // Navigate to the Consumer Home screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+
+      User? user = userCredential.user;
+
+      if (user != null) {
+        DocumentSnapshot<Map<String, dynamic>> userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(user.email).get();
+
+        if (userDoc.exists) {
+          String userType = userDoc.data()?['userType'] ?? 'Consumer';
+          print("User type: $userType");
+
+          if (userType == 'Farmer') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => FarmerDashboardScreen()),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('User data not found. Please contact support.')),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: ${e.toString()}')),
       );
-    } else {
-      // Show an error message if the login is incorrect
-      _showErrorDialog();
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       title: Text('Login'),
-  //     ),
-  //     body: Padding(
-  //       padding: const EdgeInsets.all(16.0),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Text('Phone Number:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-  //           TextField(
-  //             controller: _phoneController,
-  //             decoration: InputDecoration(hintText: 'Enter your phone number'),
-  //           ),
-  //           SizedBox(height: 20),
-  //           Text('Password:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-  //           TextField(
-  //             controller: _passwordController,
-  //             obscureText: true,
-  //             decoration: InputDecoration(hintText: 'Enter your password'),
-  //           ),
-  //           SizedBox(height: 20),
-  //           ElevatedButton(
-  //             onPressed: _navigateToOtpVerification,
-  //             child: Text('Next'),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // void _navigateToOtpVerification() {
-  //   final phone = _phoneController.text;
-  //   final password = _passwordController.text;
-  //
-  //   // Ensure +1 is added to the number if it's the special case for new user
-  //   String formattedPhone = phone;
-  //
-  //   if (phone == "4377667036") {
-  //     formattedPhone = "+1$phone";  // Prefix with +1 for the new user phone number
-  //   }
-  //
-  //   if (phone.isNotEmpty && password.isNotEmpty) {
-  //     // Check if the phone number and password match any of the registered users
-  //     if ((formattedPhone == farmerPhone && password == farmerPassword) ||
-  //         (formattedPhone == consumerPhone && password == consumerPassword) ||
-  //         (formattedPhone == newUserPhone && password == newUserPassword)) {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => OtpVerificationScreen(phoneNumber: formattedPhone),
-  //         ),
-  //       );
-  //     } else {
-  //       _showErrorDialog('Invalid phone number or password. Please try again.');
-  //     }
-  //   } else {
-  //     _showErrorDialog('Please enter both phone number and password.');
-  //   }
-  // }
-
-  void _showErrorDialog() {
+  // Error dialog for login errors
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Error'),
-          content: Text('Invalid phone number or password.'),
+          title: Text('Login Error'),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () {

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'consumer_home_screen.dart';
 import 'consumer_orders_screen.dart';
 import 'login_screen.dart'; // Import HomeScreen for navigation
@@ -10,19 +12,52 @@ class ConsumerProfileScreen extends StatefulWidget {
 }
 
 class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
-  // Initial consumer profile data
   Map<String, String> consumerProfile = {
-    'name': 'John Doe',
-    'address': '123 Maple Street, Toronto',
-    'contact': '+1 234 567 890',
-    'email': 'johndoe@example.com',
+    'name': 'Loading...',
+    'address': 'Loading...',
+    'contact': 'Loading...',
+    'email': 'Loading...',
   };
 
-  // Phone and email data
-  final String phoneNumber = '+1 437 955 5902';
-  final String email = 'farmdirectcustomercare@gmail.com';
+  // Fetch the profile data from Firestore
+  void _fetchUserProfile() async {
+    User? user = FirebaseAuth.instance.currentUser; // Get the current user
+    if (user != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email) // Use the email as the document ID
+            .get();
 
-  // Navigate to EditProfileScreen
+        if (userDoc.exists) {
+          setState(() {
+            consumerProfile = {
+              'name': userDoc['name'] ?? 'N/A',
+              'address': userDoc['address'] ?? 'N/A',
+              'contact': userDoc['contact'] ?? 'N/A',
+              'email': userDoc['email'] ?? 'N/A',
+            };
+          });
+        } else {
+          print('No user data found');
+        }
+      } catch (e) {
+        print('Error fetching user profile: $e');
+      }
+    }
+  }
+
+  // Log out the user
+  void _logout() async {
+    await FirebaseAuth.instance.signOut(); // Log out from Firebase
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+          (route) => false, // This removes all previous routes
+    );
+  }
+
+  // Navigate to the Edit Profile screen
   void _editProfile() async {
     final updatedProfile = await Navigator.push(
       context,
@@ -31,12 +66,17 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
       ),
     );
 
-    // If the profile is updated, update the state
     if (updatedProfile != null) {
       setState(() {
         consumerProfile = updatedProfile;
       });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile(); // Fetch the user profile when the screen is loaded
   }
 
   @override
@@ -83,7 +123,7 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _buildDetailRow(Icons.phone, 'Phone', consumerProfile['contact'] ?? 'N/A'),
+            _buildDetailRow(Icons.phone, 'Contact', consumerProfile['contact'] ?? 'N/A'),
             const SizedBox(height: 16),
             _buildDetailRow(Icons.location_on, 'Address', consumerProfile['address'] ?? 'N/A'),
             const SizedBox(height: 16),
@@ -101,32 +141,11 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
             ),
             const SizedBox(height: 8),
             ElevatedButton.icon(
-              onPressed: () {
-                // Logic for logging out
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                      (route) => false, // This removes all previous routes
-                );
-              },
+              onPressed: _logout,
               icon: Icon(Icons.logout),
               label: Text('Log Out'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[300],
-                foregroundColor: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Contact Us Button
-            ElevatedButton(
-              onPressed: () {
-                // Display contact details when button is clicked
-                _showContactDetailsDialog();
-              },
-              child: Text('Contact Us'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -146,111 +165,21 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
         onTap: (index) {
           // Handle navigation based on the tapped item
           if (index == 0) {
-            // Navigate to Home screen
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => HomeScreen()),
             );
           } else if (index == 1) {
-            // Navigate to Orders screen
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => ConsumerOrdersScreen()),
             );
-          } else if (index == 2) {
-            // Already in Profile screen
           }
         },
       ),
     );
   }
 
-  // Method to display contact details dialog
-  // void _showContactDetailsDialog() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         title: Text('Contact Us'),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             Text('Phone: $phoneNumber'),
-  //             SizedBox(height: 8),
-  //             Text('Email: $email'),
-  //           ],
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.pop(context); // Close the dialog
-  //             },
-  //             child: Text('Close'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-  // Method to display contact details dialog
-  void _showContactDetailsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-            'Contact Us',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, // Ensures dialog isn't unnecessarily large
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.phone, color: Colors.green),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Phone: $phoneNumber',
-                        style: TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16), // Add space between items
-                Row(
-                  children: [
-                    Icon(Icons.email, color: Colors.blue),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Email: $email',
-                        style: TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
-              child: Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-
-  // Method to build the profile details row
   Widget _buildDetailRow(IconData icon, String title, String value) {
     return Row(
       children: [

@@ -1,8 +1,8 @@
-// lib/profile_management_screen.dart
-
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; // Import for logout navigation
-import 'edit_profile_screen.dart'; // Import the edit profile screen
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'login_screen.dart';
+import 'edit_profile_screen.dart';
 import 'farmer_dashboard_screen.dart';
 import 'manage_produce_screen.dart';
 import 'order_management_screen.dart';
@@ -20,6 +20,44 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
     'contact': '+1 234 567 890',
     'email': 'john.doe@example.com',
   };
+
+  bool isLoading = true; // For displaying the loading state
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  // Function to fetch farmer's profile from Firestore
+  Future<void> _fetchProfile() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DocumentSnapshot snapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email)
+            .get();
+
+        if (snapshot.exists) {
+          setState(() {
+            farmerProfile = {
+              'name': snapshot['name'] ?? 'N/A',
+              'address': snapshot['address'] ?? 'N/A',
+              'contact': snapshot['contact'] ?? 'N/A',
+              'email': snapshot['email'] ?? 'N/A',
+            };
+            isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching profile: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   int _selectedIndex = 3; // Set the current tab index to Profile Management
 
@@ -39,8 +77,8 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
     }
   }
 
+  // Function to handle profile edit navigation
   void _editProfile() async {
-    // Navigate to EditProfileScreen and wait for updated data
     final updatedProfile = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -51,7 +89,25 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
     if (updatedProfile != null) {
       setState(() {
         farmerProfile = updatedProfile; // Update profile with new data
+        _updateProfileInFirestore(updatedProfile); // Update Firestore as well
       });
+    }
+  }
+
+  // Function to update the profile data in Firestore
+  Future<void> _updateProfileInFirestore(Map<String, String> updatedProfile) async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('farmers').doc(user.email).update({
+          'name': updatedProfile['name'],
+          'address': updatedProfile['address'],
+          'contact': updatedProfile['contact'],
+          'email': updatedProfile['email'],
+        });
+      }
+    } catch (e) {
+      print('Error updating profile in Firestore: $e');
     }
   }
 
@@ -61,7 +117,9 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
       appBar: AppBar(
         title: Text('Profile Management'),
       ),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator()) // Show loading indicator while fetching
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +128,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
             Center(
               child: CircleAvatar(
                 radius: 60,
-                backgroundImage: AssetImage('assets/farmer_placeholder.png'),
+                backgroundImage: AssetImage('assets/profile_placeholder.png'),
               ),
             ),
             const SizedBox(height: 16),
@@ -99,7 +157,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _buildDetailRow(Icons.phone, 'Phone', farmerProfile['contact'] ?? 'N/A'),
+            _buildDetailRow(Icons.phone, 'Contact', farmerProfile['contact'] ?? 'N/A'),
             const SizedBox(height: 16),
             _buildDetailRow(Icons.location_on, 'Address', farmerProfile['address'] ?? 'N/A'),
             const SizedBox(height: 16),
@@ -107,9 +165,9 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
             // Action Buttons
             const Divider(),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.centerLeft, // Align Edit Profile button to the left
               child: ElevatedButton.icon(
-                onPressed: _editProfile,
+                onPressed: _editProfile, // Edit profile functionality
                 icon: Icon(Icons.edit),
                 label: Text('Edit Profile'),
                 style: ElevatedButton.styleFrom(
@@ -120,9 +178,10 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
             ),
             const SizedBox(height: 8),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.centerLeft, // Align Log Out button to the left
               child: ElevatedButton.icon(
                 onPressed: () {
+                  // Logic for logging out
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -138,53 +197,6 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Contact Us Button
-            Align(
-              alignment: Alignment.centerLeft,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Show an AlertDialog with contact details
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Contact Us'),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: Icon(Icons.phone, color: Colors.green),
-                              title: Text('Phone'),
-                              subtitle: Text('+1 437 955 5902'),
-                            ),
-                            ListTile(
-                              leading: Icon(Icons.email, color: Colors.blue),
-                              title: Text('Email'),
-                              subtitle:
-                              Text('farmdirectcustomercare@gmail.com'),
-                            ),
-                          ],
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context); // Close the dialog
-                            },
-                            child: Text('Close'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                child: Text('Contact Us'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ),
           ],
         ),
       ),
