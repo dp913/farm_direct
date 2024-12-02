@@ -104,8 +104,8 @@ class ProductCategoryScreen extends StatelessWidget {
       ];
     } else if (category == 'Fruits') {
       return [
-        {'name': 'Apple', 'image': 'assets/apple.png'},
-        {'name': 'Banana', 'image': 'assets/banana.png'},
+        {'name': 'Apple', 'image': 'assets/Apple.png'},
+        {'name': 'Banana', 'image': 'assets/Banana.png'},
         {'name': 'Grapes', 'image': 'assets/Grapes.png'},
         {'name': 'Strawberry', 'image': 'assets/Strawberry.png'},
         // Add more fruits here
