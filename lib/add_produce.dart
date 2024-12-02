@@ -1,5 +1,9 @@
 // lib/add_produce.dart
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore import
+import 'package:firebase_auth/firebase_auth.dart'; // FirebaseAuth import
+import 'package:intl/intl.dart';
+
 
 class AddDetailsScreen extends StatefulWidget {
   @override
@@ -13,11 +17,67 @@ class _AddDetailsScreenState extends State<AddDetailsScreen> {
   final TextEditingController _productNameController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _rateController = TextEditingController();
-  final TextEditingController _datePostedController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _contactController = TextEditingController();
 
   String _deliveryAvailable = 'Yes'; // Default value for delivery availability
+  String _farmerName = ''; // Farmer's name (from logged-in user)
+  String _contact = ''; // Farmer's contact (from logged-in user)
+  String _datePosted = ''; // Date Posted (from system)
+
+  // Firestore instance
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserDetails(); // Get user details on screen load
+    _datePosted = DateFormat('yyyy-MM-dd').format(DateTime.now()); // Get the current date for "Date Posted"
+  }
+
+  Future<void> _getUserDetails() async {
+    // Get the logged-in user details
+    User? user = _auth.currentUser;
+
+    if (user != null) {
+      // Fetch the user's details (e.g., Name and Contact)
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.email).get();
+      if (userDoc.exists) {
+        setState(() {
+          _farmerName = userDoc['name'] ?? 'Unknown';
+          _contact = userDoc['contact'] ?? 'Unknown';
+        });
+      }
+    }
+  }
+
+  Future<void> _addProduce() async {
+    if (_formKey.currentState!.validate()) {
+      // Create a new produce object
+      final newProduce = {
+        'product': _productNameController.text,
+        'quantity': _quantityController.text,
+        'rate': _rateController.text,
+        'datePosted': _datePosted, // System-generated Date
+        'location': _locationController.text,
+        'contact': _contact, // Logged-in user contact
+        'farmerName': _farmerName, // Logged-in user name
+        'delivery': _deliveryAvailable,
+      };
+
+      try {
+        // Save the new produce to Firestore
+        await _firestore.collection('produces').add(newProduce);
+        // Show a success message
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Produce added successfully!')));
+        // Go back to the previous screen
+        Navigator.pop(context);
+      } catch (e) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add produce: $e')));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,26 +133,6 @@ class _AddDetailsScreenState extends State<AddDetailsScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Date Posted
-                TextFormField(
-                  controller: _datePostedController,
-                  decoration: InputDecoration(labelText: 'Date Posted'),
-                  onTap: () async {
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    DateTime? date = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
-                    );
-                    if (date != null) {
-                      _datePostedController.text =
-                      "${date.year}-${date.month}-${date.day}";
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-
                 // Location
                 TextFormField(
                   controller: _locationController,
@@ -100,20 +140,6 @@ class _AddDetailsScreenState extends State<AddDetailsScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter the location';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Contact
-                TextFormField(
-                  controller: _contactController,
-                  decoration: InputDecoration(labelText: 'Contact'),
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the contact information';
                     }
                     return null;
                   },
@@ -148,22 +174,7 @@ class _AddDetailsScreenState extends State<AddDetailsScreen> {
                 // Submit Button
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // Handle form submission
-                        final newProduce = {
-                          'product': _productNameController.text,
-                          'quantity': _quantityController.text,
-                          'rate': _rateController.text,
-                          'datePosted': _datePostedController.text,
-                          'location': _locationController.text,
-                          'contact': _contactController.text,
-                          'delivery': _deliveryAvailable,
-                        };
-
-                        Navigator.pop(context, newProduce);
-                      }
-                    },
+                    onPressed: _addProduce, // Call the Firestore add function
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,

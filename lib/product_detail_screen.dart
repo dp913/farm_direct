@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'consumer_home_screen.dart';
 import 'consumer_orders_screen.dart';
 import 'consumer_place_order_screen.dart';
-import 'consumer_profile_screen.dart'; // Import for navigation to ProfileScreen
+import 'consumer_profile_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
-  final Map<String, String> farmerDetails;
+  final Map<String, dynamic> farmerDetails; // Updated to dynamic
 
   ProductDetailScreen({required this.farmerDetails});
 
@@ -24,7 +24,7 @@ class ProductDetailScreen extends StatelessWidget {
             SizedBox(
               height: 200,
               child: Image.asset(
-                farmerDetails['image'] ?? '',
+                'assets/${farmerDetails['product']}.png', // Dynamically load the image
                 fit: BoxFit.cover,
                 width: double.infinity,
               ),
@@ -37,10 +37,10 @@ class ProductDetailScreen extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text('Product: ${farmerDetails['product']}'),
-            Text('Quantity: ${farmerDetails['quantity']} kg'),
-            Text('Rate: ${farmerDetails['rate']}'),
-            Text('Posted on: ${farmerDetails['datePosted']}'),
+            Text('Product: ${farmerDetails['product'] ?? 'N/A'}'),
+            Text('Quantity: ${farmerDetails['quantity'] ?? 'N/A'} kg'),
+            Text('Rate: ${farmerDetails['rate'] ?? 'N/A'}'),
+            Text('Posted on: ${farmerDetails['datePosted'] ?? 'N/A'}'),
             const SizedBox(height: 16),
 
             // Farmer's Contact Information
@@ -49,9 +49,9 @@ class ProductDetailScreen extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text('Name: ${farmerDetails['name']}'),
-            Text('Location: ${farmerDetails['location']}'),
-            Text('Contact: ${farmerDetails['contact']}'),
+            Text('Name: ${farmerDetails['name'] ?? 'N/A'}'),
+            Text('Location: ${farmerDetails['location'] ?? 'N/A'}'),
+            Text('Contact: ${farmerDetails['contact'] ?? 'N/A'}'),
             const SizedBox(height: 16),
 
             // Delivery Information
@@ -60,7 +60,7 @@ class ProductDetailScreen extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text('Delivery Available: ${farmerDetails['delivery']}'),
+            Text('Delivery Available: ${farmerDetails['delivery'] ?? 'N/A'}'),
             const SizedBox(height: 32),
 
             // Request Order Button
@@ -70,7 +70,7 @@ class ProductDetailScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PlaceOrderScreen(farmerDetails: farmerDetails),
+                      builder: (context) => PlaceOrderScreen(farmerDetails: farmerDetails.cast<String, String>()),
                     ),
                   );
                 },
@@ -108,13 +108,11 @@ class ProductDetailScreen extends StatelessWidget {
               MaterialPageRoute(builder: (context) => HomeScreen()),
             );
           } else if (index == 1) {
-            // Navigate to Orders screen
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => ConsumerOrdersScreen()),
             );
           } else if (index == 2) {
-            // Navigate to Profile screen
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => ConsumerProfileScreen()),
@@ -128,34 +126,33 @@ class ProductDetailScreen extends StatelessWidget {
   // Show confirmation dialog
   void _showOrderConfirmation(BuildContext context) {
     showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Request Order'),
-            content: Text('Are you sure you want to request this order?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close dialog
-                },
-                child: Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close dialog
-                  // Optionally navigate to an order confirmation screen or show success message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Order request sent successfully!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                child: Text('Confirm'),
-              ),
-            ],
-          );
-          },
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Request Order'),
+          content: Text('Are you sure you want to request this order?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Order request sent successfully!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              child: Text('Confirm'),
+            ),
+          ],
         );
-    }
+      },
+    );
+  }
 }

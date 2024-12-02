@@ -1,36 +1,87 @@
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'consumer_home_screen.dart';
 import 'consumer_profile_screen.dart';
 
-class ConsumerOrdersScreen extends StatelessWidget {
-  // Mock list of orders
-  final List<Map<String, String>> orders = [
-    {
-      'product': 'Tomato',
-      'farmer': 'John Doe',
-      'quantity': '10 kg',
-      'price': '\$25',
-      'status': 'Requested',
-      'image': 'assets/tomato.png',
-    },
-    {
-      'product': 'Carrot',
-      'farmer': 'Alice Smith',
-      'quantity': '5 kg',
-      'price': '\$15',
-      'status': 'In Progress',
-      'image': 'assets/carrot.png',
-    },
-    {
-      'product': 'Apple',
-      'farmer': 'Bob Johnson',
-      'quantity': '8 kg',
-      'price': '\$20',
-      'status': 'Delivered',
-      'image': 'assets/apple.png',
-    },
-  ];
+class ConsumerOrdersScreen extends StatefulWidget {
+  @override
+  _ConsumerOrdersScreenState createState() => _ConsumerOrdersScreenState();
+}
+
+class _ConsumerOrdersScreenState extends State<ConsumerOrdersScreen> {
+  List<Map<String, dynamic>> _orders = [];
+  bool _isLoading = true;
+  String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders();
+  }
+
+  // Fetch the orders from Firestore for the current logged-in user
+  Future<void> _fetchOrders() async {
+    try {
+      // Get the current logged-in user
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        setState(() {
+          _errorMessage = 'User not logged in';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Get the current user's email
+      String userEmail = currentUser.email ?? '';
+
+      // Fetch the consumer's name from the 'users' collection based on email
+      QuerySnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: userEmail)
+          .get();
+
+      if (userSnapshot.docs.isEmpty) {
+        setState(() {
+          _errorMessage = 'User not found in the users collection';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Get the consumer's name from the user document
+      String consumerName = userSnapshot.docs.first['name'] ?? 'Unknown User';
+
+      // Fetch the orders of the logged-in user from Firestore based on consumerName
+      QuerySnapshot ordersSnapshot = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('consumerName', isEqualTo: consumerName)
+          .get();
+
+      // Map the fetched documents to a list of orders
+      List<Map<String, dynamic>> orders = ordersSnapshot.docs.map((doc) {
+        return {
+          'product': doc['product'] ?? 'Unknown Product',
+          'farmer': doc['farmerName'] ?? 'Unknown Farmer',
+          'quantity': '${doc['requestedQuantity']} kg',
+          'price': '\$${doc['totalPrice'].toStringAsFixed(2)}',
+          'status': doc['status'] ?? 'Unknown Status',
+
+        };
+      }).toList();
+
+      setState(() {
+        _orders = orders;
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        _errorMessage = 'Failed to load orders: $error';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +89,14 @@ class ConsumerOrdersScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Your Orders'),
       ),
-      body: ListView.builder(
-        itemCount: orders.length,
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _errorMessage.isNotEmpty
+          ? Center(child: Text(_errorMessage))
+          : ListView.builder(
+        itemCount: _orders.length,
         itemBuilder: (context, index) {
-          final order = orders[index];
+          final order = _orders[index];
           return OrderCard(order: order);
         },
       ),
@@ -78,7 +133,7 @@ class ConsumerOrdersScreen extends StatelessWidget {
 }
 
 class OrderCard extends StatelessWidget {
-  final Map<String, String> order;
+  final Map<String, dynamic> order;
 
   OrderCard({required this.order});
 
@@ -88,7 +143,7 @@ class OrderCard extends StatelessWidget {
       margin: EdgeInsets.all(8.0),
       child: ListTile(
         leading: Image.asset(
-          order['image']!,
+          'assets/${order['product']}.png',
           width: 50,
           height: 50,
           fit: BoxFit.cover,
@@ -104,10 +159,10 @@ class OrderCard extends StatelessWidget {
           ],
         ),
         trailing: Icon(
-          order['status'] == 'Delivered'
+          order['status'] == 'Completed'
               ? Icons.check_circle
               : Icons.access_time,
-          color: order['status'] == 'Delivered' ? Colors.green : Colors.orange,
+          color: order['status'] == 'Completed' ? Colors.green : Colors.orange,
         ),
       ),
     );
