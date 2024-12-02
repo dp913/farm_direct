@@ -33,6 +33,7 @@ dependencies:
   firebase_core: ^3.8.0
   firebase_auth: ^5.0.0
   cloud_firestore: ^5.5.0
+  intl: ^0.18.0
 
 location_dependencies:
   flutter:
@@ -83,10 +84,16 @@ flutter:
     - assets/grains.png
     - assets/meat.png
     - assets/herbs.png
-    - assets/apple.png
-    - assets/banana.png
-    - assets/tomato.png
-    - assets/carrot.png
+    - assets/Apple.png
+    - assets/Banana.png
+    - assets/Tomato.png
+    - assets/Carrot.png
+    - assets/Potato.png
+    - assets/Onion.png
+    - assets/Oats.png
+    - assets/Wheat.png
+    - assets/Barley.png
+    - assets/Brown_rice.png
     - assets/tomato_farmer.png
     - assets/tomato_farmer2.png
     - assets/profile_placeholder.png

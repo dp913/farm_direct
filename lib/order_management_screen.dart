@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'farmer_dashboard_screen.dart';
 import 'manage_produce_screen.dart';
 import 'profile_management_screen.dart';
@@ -9,40 +11,8 @@ class OrderManagementScreen extends StatefulWidget {
 }
 
 class _OrderManagementScreenState extends State<OrderManagementScreen> {
-  final List<Map<String, String>> orderList = [
-    {
-      'orderId': 'ORD123',
-      'product': 'Tomato',
-      'quantity': '20 kg',
-      'status': 'Pending',
-      'buyer': 'Alex Johnson',
-      'date': '2024-11-01',
-      'price': '\$40',
-      'image': 'assets/tomato.png',
-    },
-    {
-      'orderId': 'ORD124',
-      'product': 'Carrot',
-      'quantity': '15 kg',
-      'status': 'Completed',
-      'buyer': 'Lisa Brown',
-      'date': '2024-10-28',
-      'price': '\$30',
-      'image': 'assets/carrot.png',
-    },
-    {
-      'orderId': 'ORD125',
-      'product': 'Potato',
-      'quantity': '25 kg',
-      'status': 'In Progress',
-      'buyer': 'John Doe',
-      'date': '2024-11-02',
-      'price': '\$50',
-      'image': 'assets/carrot.png',
-    },
-  ];
-
-  List<Map<String, String>> filteredOrders = [];
+  List<Map<String, dynamic>> orderList = [];
+  List<Map<String, dynamic>> filteredOrders = [];
   String searchQuery = "";
   int _selectedIndex = 2;
 
@@ -56,15 +26,63 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
   @override
   void initState() {
     super.initState();
-    filteredOrders = orderList; // Initialize the filtered list with all orders
+    _fetchOrders(); // Fetch orders when the screen loads
+  }
+
+  Future<void> _fetchOrders() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('User not logged in'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      String userEmail = currentUser.email ?? 'Unknown Email';
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userEmail)
+          .get();
+
+      String farmerName =
+          userDoc.exists ? userDoc['name'] ?? 'Unknown User' : 'Unknown User';
+
+      QuerySnapshot ordersSnapshot = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('farmerName', isEqualTo: farmerName)
+          .get();
+
+      List<Map<String, dynamic>> fetchedOrders = [];
+      for (var doc in ordersSnapshot.docs) {
+        fetchedOrders.add({
+          'orderId': doc.id,
+          'product': doc['product'],
+          'quantity': doc['requestedQuantity'],
+          'status': doc['status'],
+          'buyer': doc['consumerName'],
+          'date': doc['date'],
+          'price': doc['totalPrice'],
+        });
+      }
+
+      setState(() {
+        orderList = fetchedOrders;
+        filteredOrders = fetchedOrders; // Display all orders by default
+      });
+    } catch (e) {
+      print("Error fetching orders: $e");
+    }
   }
 
   void _onSearch(String query) {
     setState(() {
       searchQuery = query.toLowerCase();
       filteredOrders = orderList
-          .where((order) =>
-          order['buyer']!.toLowerCase().contains(searchQuery)) // Filter by buyer name
+          .where((order) => order['buyer']!.toLowerCase().contains(searchQuery))
           .toList();
     });
   }
@@ -74,9 +92,8 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
       if (status == 'All') {
         filteredOrders = orderList;
       } else {
-        filteredOrders = orderList
-            .where((order) => order['status'] == status)
-            .toList();
+        filteredOrders =
+            orderList.where((order) => order['status'] == status).toList();
       }
     });
   }
@@ -98,7 +115,6 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
       ),
       body: Column(
         children: [
-          // Search bar below the AppBar
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -112,17 +128,15 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
               ),
             ),
           ),
-          // Filter buttons with Show All button included
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Wrap(
               spacing: 8.0,
               runSpacing: 4.0,
               children: [
-
                 ElevatedButton(
-                  onPressed: () => _filterOrders('Pending'),
-                  child: Text('Pending'),
+                  onPressed: () => _filterOrders('Requested'),
+                  child: Text('Requested'),
                 ),
                 ElevatedButton(
                   onPressed: () => _filterOrders('In Progress'),
@@ -144,27 +158,31 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
               ],
             ),
           ),
-          // Display filtered orders
           Expanded(
             child: filteredOrders.isEmpty
                 ? Center(
-              child: Text(
-                'No orders found for "$searchQuery"',
-                style: TextStyle(fontSize: 16),
-              ),
-            )
+                    child: Text(
+                      searchQuery.isEmpty
+                          ? 'No orders available.'
+                          : 'No orders found for "$searchQuery"',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  )
                 : ListView.builder(
-              itemCount: filteredOrders.length,
-              itemBuilder: (context, index) {
-                final order = filteredOrders[index];
-                return OrderCard(
-                  order: order,
-                  onStatusChanged: () {
-                    setState(() {}); // Refresh the UI when order status changes
-                  },
-                );
-              },
-            ),
+                    itemCount: filteredOrders.length,
+                    itemBuilder: (context, index) {
+                      final order = filteredOrders[index];
+                      final orderAsStringMap = order.map((key, value) => MapEntry(key, value.toString()));
+                      return OrderCard(
+                        order: orderAsStringMap,
+                        onStatusChanged: () {
+                          setState(
+                              () {}); // Refresh the UI when order status changes
+                        },
+                        context: context, // Pass context
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -200,8 +218,13 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
 class OrderCard extends StatelessWidget {
   final Map<String, String> order;
   final VoidCallback onStatusChanged;
+  final BuildContext context; // Add context parameter
 
-  OrderCard({required this.order, required this.onStatusChanged});
+  OrderCard({
+    required this.order,
+    required this.onStatusChanged,
+    required this.context,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -209,7 +232,7 @@ class OrderCard extends StatelessWidget {
       margin: EdgeInsets.all(8.0),
       child: ListTile(
         leading: Image.asset(
-          order['image'] ?? 'assets/placeholder.png', // Default image
+          'assets/${order['product']}.png', // Default image
           width: 50,
           height: 50,
           fit: BoxFit.cover,
@@ -238,16 +261,16 @@ class OrderCard extends StatelessWidget {
               : Colors.orange,
         ),
         onTap: () {
-          _handleOrderTap(context, order);
+          _handleOrderTap(context, order); // Pass context to the method
         },
       ),
     );
   }
 
   void _handleOrderTap(BuildContext context, Map<String, String> order) {
-    String currentStatus = order['status'] ?? 'Pending';
+    String currentStatus = order['status'] ?? 'Requested';
 
-    if (currentStatus == 'Pending') {
+    if (currentStatus == 'Requested') {
       // Dialog for approving or rejecting a new order
       showDialog(
         context: context,
@@ -326,8 +349,28 @@ class OrderCard extends StatelessWidget {
     }
   }
 
-  void _updateOrderStatus(Map<String, String> order, String newStatus) {
-    order['status'] = newStatus; // Update the status locally
-    onStatusChanged(); // Notify parent widget to refresh the UI
+  void _updateOrderStatus(Map<String, String> order, String newStatus) async {
+    // Update the status locally
+    order['status'] = newStatus;
+
+    // Update the status in Firestore
+    try {
+      await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(order['orderId']) // Assuming orderId is the document ID
+          .update({'status': newStatus});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Order status updated successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update order status: $e')),
+      );
+    }
+
+    // Notify parent widget to refresh the UI
+    onStatusChanged();
   }
 }
+

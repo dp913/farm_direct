@@ -1,4 +1,5 @@
-// lib/farmer_dashboard_screen.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'manage_produce_screen.dart';
 import 'order_management_screen.dart';
@@ -11,6 +12,79 @@ class FarmerDashboardScreen extends StatefulWidget {
 
 class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
   int _selectedIndex = 0;
+  int totalProduce = 0;
+  int pendingOrders = 0;
+  int completedSales = 0;
+  double totalRevenue = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDashboardData(); // Fetch data from Firestore
+  }
+
+  // Fetch data from Firebase Firestore
+  Future<void> _fetchDashboardData() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('User not logged in'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      String userEmail = currentUser.email ?? 'Unknown Email';
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userEmail)
+          .get();
+
+      String farmerName = userDoc.exists ? userDoc['name'] ?? 'Unknown User' : 'Unknown User';
+
+      // Fetch total produce count
+      var productsSnapshot = await FirebaseFirestore.instance.collection('produces').where('farmerName', isEqualTo: farmerName).get();
+      setState(() {
+        totalProduce = productsSnapshot.docs.length;
+      });
+
+      // Fetch pending orders count
+      var pendingOrdersSnapshot = await FirebaseFirestore.instance
+          .collection('orders').where('farmerName', isEqualTo: farmerName)
+          .where('status', isEqualTo: 'In Progress')
+          .get();
+      setState(() {
+        pendingOrders = pendingOrdersSnapshot.docs.length;
+      });
+
+      // Fetch completed sales count (or number of completed orders)
+      var completedOrdersSnapshot = await FirebaseFirestore.instance
+          .collection('orders').where('farmerName', isEqualTo: farmerName)
+          .where('status', isEqualTo: 'Completed')
+          .get();
+      setState(() {
+        completedSales = completedOrdersSnapshot.docs.length;
+      });
+
+      // Fetch total revenue (sum of completed order amounts)
+      var revenueSnapshot = await FirebaseFirestore.instance
+          .collection('orders').where('farmerName', isEqualTo: farmerName)
+          .where('status', isEqualTo: 'Completed')
+          .get();
+      double total = 0.0;
+      revenueSnapshot.docs.forEach((doc) {
+        total += doc['totalPrice']; // Assuming totalPrice is a field in order document
+      });
+      setState(() {
+        totalRevenue = total;
+      });
+    } catch (e) {
+      print("Error fetching dashboard data: $e");
+    }
+  }
 
   final List<Widget> _screens = [
     FarmerDashboardScreen(), // Self-reference for navigation consistency
@@ -40,7 +114,6 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_titles[_selectedIndex]),
-        //backgroundColor: Colors.green,
       ),
       body: _selectedIndex == 0
           ? Column(
@@ -55,7 +128,7 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                 _buildDashboardCard(
                   context,
                   title: 'Total Produce',
-                  value: '15 Items',
+                  value: '$totalProduce Items',
                   icon: Icons.local_florist,
                   color: Colors.green,
                   onTap: () {
@@ -65,7 +138,7 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                 _buildDashboardCard(
                   context,
                   title: 'Pending Orders',
-                  value: '5 Orders',
+                  value: '$pendingOrders Orders',
                   icon: Icons.pending_actions,
                   color: Colors.orange,
                   onTap: () {
@@ -75,7 +148,7 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                 _buildDashboardCard(
                   context,
                   title: 'Completed Sales',
-                  value: '120',
+                  value: '$completedSales Orders',
                   icon: Icons.shopping_cart,
                   color: Colors.blue,
                   onTap: () {
@@ -85,7 +158,7 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                 _buildDashboardCard(
                   context,
                   title: 'Total Revenue',
-                  value: '\$3,500',
+                  value: '\$${totalRevenue.toStringAsFixed(2)}',
                   icon: Icons.attach_money,
                   color: Colors.teal,
                   onTap: () {

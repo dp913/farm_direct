@@ -96,15 +96,28 @@ class ProductCategoryScreen extends StatelessWidget {
   List<Map<String, String>> _getProductsByCategory(String category) {
     if (category == 'Vegetables') {
       return [
-        {'name': 'Tomato', 'image': 'assets/tomato.png'},
-        {'name': 'Carrot', 'image': 'assets/carrot.png'},
+        {'name': 'Potato', 'image': 'assets/Potato.png'},
+        {'name': 'Carrot', 'image': 'assets/Carrot.png'},
+        {'name': 'Tomato', 'image': 'assets/Tomato.png'},
+        {'name': 'Onion', 'image': 'assets/Onion.png'},
         // Add more vegetables here
       ];
     } else if (category == 'Fruits') {
       return [
         {'name': 'Apple', 'image': 'assets/apple.png'},
         {'name': 'Banana', 'image': 'assets/banana.png'},
+        {'name': 'Grapes', 'image': 'assets/Grapes.png'},
+        {'name': 'Strawberry', 'image': 'assets/Strawberry.png'},
         // Add more fruits here
+      ];
+    }
+    else if (category == 'Grains') {
+      return [
+        {'name': 'Wheat', 'image': 'assets/Wheat.png'},
+        {'name': 'Barley', 'image': 'assets/Barley.png'},
+        {'name': 'Brown_rice', 'image': 'assets/Brown_rice.png'},
+        {'name': 'Oats', 'image': 'assets/Oats.png'},
+        // Add more here
       ];
     }
     return [];

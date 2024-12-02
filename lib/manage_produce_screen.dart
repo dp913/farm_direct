@@ -1,5 +1,7 @@
 // lib/manage_produce_screen.dart
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore import
+import 'package:firebase_auth/firebase_auth.dart'; // FirebaseAuth import
 import 'farmer_dashboard_screen.dart';
 import 'order_management_screen.dart';
 import 'profile_management_screen.dart';
@@ -11,44 +13,54 @@ class ManageProduceScreen extends StatefulWidget {
 }
 
 class _ManageProduceScreenState extends State<ManageProduceScreen> {
-  final List<Map<String, String>> _produceList = [
-    {
-      'name': 'Tomato',
-      'quantity': '100 kg',
-      'price': '\$2.5/kg',
-      'image': 'assets/tomato.png',
-    },
-    {
-      'name': 'Carrot',
-      'quantity': '50 kg',
-      'price': '\$1.8/kg',
-      'image': 'assets/carrot.png',
-    },
-  ];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<Map<String, dynamic>> _produceList = [];
+  int _selectedIndex = 1;
 
-  int _selectedIndex = 1; // Set the current tab index to Manage Produce
+  @override
+  void initState() {
+    super.initState();
+    _fetchFarmerProduce();
+  }
 
-  final List<Widget> _screens = [
-    FarmerDashboardScreen(),
-    ManageProduceScreen(), // Self-reference for navigation consistency
-    OrderManagementScreen(),
-    ProfileManagementScreen(),
-  ];
+  // Fetch farmer's produce from Firestore based on farmer's name
+  Future<void> _fetchFarmerProduce() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.email).get();
 
-  void _onItemTapped(int index) {
-    if (_selectedIndex != index) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => _screens[index]),
-      );
+      if (userDoc != null) {
+        String farmerName = userDoc['name'] ?? 'Unknown'; // Get farmer's name from logged-in user
+
+        try {
+          QuerySnapshot snapshot = await _firestore
+              .collection('produces')
+              .where('farmerName', isEqualTo: farmerName)
+              .get();
+
+          setState(() {
+            _produceList = snapshot.docs
+                .map((doc) => {
+              'id': doc.id,
+              'name': doc['product'],
+              'quantity': doc['quantity'],
+              'price': doc['rate'],
+            })
+                .toList();
+          });
+        } catch (e) {
+          print('Error fetching produce: $e');
+        }
+      }
     }
   }
 
+  // Edit produce and update in Firestore
   void _editProduce(int index) async {
     final produce = _produceList[index];
 
-    // Show a dialog to edit product details
-    final updatedProduce = await showDialog<Map<String, String>>(
+    final updatedProduce = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (BuildContext context) {
         final TextEditingController nameController =
@@ -88,12 +100,15 @@ class _ManageProduceScreenState extends State<ManageProduceScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(context, {
-                  'name': nameController.text,
-                  'quantity': quantityController.text,
-                  'price': priceController.text,
-                  'image': produce['image'] ?? '',
-                });
+                Navigator.pop(
+                  context,
+                  {
+                    'id': produce['id'],
+                    'name': nameController.text,
+                    'quantity': quantityController.text,
+                    'price': priceController.text,
+                  },
+                );
               },
               child: Text('Save'),
             ),
@@ -103,8 +118,19 @@ class _ManageProduceScreenState extends State<ManageProduceScreen> {
     );
 
     if (updatedProduce != null) {
+      // Update the produce in Firestore
+      await _firestore
+          .collection('produces')
+          .doc(updatedProduce['id'])
+          .update({
+        'product': updatedProduce['name'],
+        'quantity': updatedProduce['quantity'],
+        'rate': updatedProduce['price'],
+      });
+
       setState(() {
-        _produceList[index] = updatedProduce; // Update the product details
+        // Update the product in the list
+        _produceList[index] = updatedProduce;
       });
     }
   }
@@ -114,9 +140,10 @@ class _ManageProduceScreenState extends State<ManageProduceScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Manage Produce'),
-        //backgroundColor: Colors.green,
       ),
-      body: ListView.builder(
+      body: _produceList.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
         itemCount: _produceList.length,
         itemBuilder: (context, index) {
           final produce = _produceList[index];
@@ -124,13 +151,13 @@ class _ManageProduceScreenState extends State<ManageProduceScreen> {
             margin: EdgeInsets.all(8.0),
             child: ListTile(
               leading: Image.asset(
-                produce['image'] ?? '',
+                'assets/${produce['name']}.png',
                 width: 50,
                 height: 50,
                 fit: BoxFit.cover,
               ),
               title: Text(produce['name'] ?? ''),
-              subtitle: Text('${produce['quantity']} - ${produce['price']}'),
+              subtitle: Text('${produce['quantity']} Kg - \$${produce['price']} /Kg'),
               trailing: IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () {
@@ -150,8 +177,16 @@ class _ManageProduceScreenState extends State<ManageProduceScreen> {
           );
 
           if (newProduce != null) {
+            // Add the new produce to Firestore
+            await _firestore.collection('produces').add({
+              'product': newProduce['name'],
+              'quantity': newProduce['quantity'],
+              'rate': newProduce['price'],
+              'farmerName': _auth.currentUser?.displayName ?? 'Unknown',
+            });
+
             setState(() {
-              _produceList.add(newProduce); // Add new product
+              _produceList.add(newProduce); // Add new product to the list
             });
           }
         },
@@ -187,4 +222,20 @@ class _ManageProduceScreenState extends State<ManageProduceScreen> {
       ),
     );
   }
+
+  void _onItemTapped(int index) {
+    if (_selectedIndex != index) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => _screens[index]),
+      );
+    }
+  }
+
+  final List<Widget> _screens = [
+    FarmerDashboardScreen(),
+    ManageProduceScreen(), // Self-reference for navigation consistency
+    OrderManagementScreen(),
+    ProfileManagementScreen(),
+  ];
 }
